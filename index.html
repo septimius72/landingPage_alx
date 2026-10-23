@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alexander Becz | AI-Powered Technical Recruiter</title>
+    <meta name="description" content="Talent Acquisition Leader & Gen AI Enthusiast specializing in Staff/Senior Engineering and GTM talent.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Config for Theme & Animations -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            400: '#60a5fa',
+                            500: '#3b82f6', 
+                            600: '#2563eb',
+                        }
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'marquee': 'marquee 30s linear infinite',
+                        'marquee-reverse': 'marquee-reverse 30s linear infinite',
+                        'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: 0, transform: 'translateY(20px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                        marquee: {
+                            '0%': { transform: 'translateX(0%)' },
+                            '100%': { transform: 'translateX(-100%)' },
+                        },
+                        'marquee-reverse': {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(0%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html { scroll-behavior: smooth; }
+        body { transition: background-color 0.3s ease, color 0.3s ease; }
+        
+        /* 
+         * LAYER 1: CSS Topographic Elevation Map 
+         * Creates organic contour lines using intersecting radial gradients
+         */
+        .topo-bg {
+            background-image: 
+                repeating-radial-gradient(circle at 0% 0%, transparent 0, transparent 35px, rgba(59, 130, 246, 0.05) 35px, rgba(59, 130, 246, 0.05) 36px),
+                repeating-radial-gradient(circle at 100% 100%, transparent 0, transparent 45px, rgba(59, 130, 246, 0.04) 45px, rgba(59, 130, 246, 0.04) 46px),
+                repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 60px, rgba(59, 130, 246, 0.03) 60px, rgba(59, 130, 246, 0.03) 61px);
+            background-size: 100vw 100vh;
+            background-attachment: fixed;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        /* Interactive Spotlight Bento Card base */
+        .bento-card {
+            @apply relative overflow-hidden rounded-3xl p-6 md:p-8 
+                   bg-white/70 dark:bg-zinc-900/70 
+                   border border-gray-200/50 dark:border-zinc-800/50
+                   shadow-sm backdrop-blur-xl
+                   transition-transform duration-500 ease-out;
+            --mouse-x: 50%;
+            --mouse-y: 50%;
+        }
+
+        .bento-card:hover { transform: translateY(-4px); }
+
+        /* Mouse Tracking Spotlight Glow */
+        .bento-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            padding: 2px;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y), 
+                rgba(59, 130, 246, 0.5), 
+                transparent 40%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .bento-card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y), 
+                rgba(59, 130, 246, 0.08), 
+                transparent 40%
+            );
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .bento-card:hover::before, .bento-card:hover::after { opacity: 1; }
+        
+        .bento-content { @apply relative z-20; }
+
+        .cursor-blink { animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Custom Scrollbar for Terminal */
+        .terminal-scroll::-webkit-scrollbar { width: 6px; }
+        .terminal-scroll::-webkit-scrollbar-track { background: transparent; }
+        .terminal-scroll::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        
+        /* Toast animation */
+        #toast.show { bottom: 6rem; opacity: 1; pointer-events: auto; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-zinc-950 dark:text-zinc-100 min-h-screen antialiased selection:bg-brand-500 selection:text-white pb-32">
+
+    <!-- BACKGROUND LAYER 1: CSS Topographic Elevation Map -->
+    <div class="topo-bg fixed inset-0 z-[1] pointer-events-none"></div>
+
+    <!-- BACKGROUND LAYER 2: Interactive Particle Canvas Network -->
+    <canvas id="network-canvas" class="fixed inset-0 z-[2] pointer-events-none"></canvas>
+
+    <!-- Global Toast Notification -->
+    <div id="toast" class="fixed bottom-0 left-1/2 transform -translate-x-1/2 opacity-0 pointer-events-none transition-all duration-300 z-[100] bg-green-500 text-white px-4 py-2 rounded-full font-semibold shadow-lg flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-4 h-4"></i> Copied to clipboard!
+    </div>
+
+    <!-- Navigation (z-index adjusted to sit above backgrounds) -->
+    <nav class="max-w-6xl mx-auto px-4 py-6 flex justify-between items-center opacity-0 animate-fade-in-up z-50 relative">
+        <div class="font-bold text-xl tracking-tight flex items-center gap-2 group cursor-pointer bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md px-4 py-2 rounded-2xl border border-gray-200/50 dark:border-zinc-800/50 shadow-sm">
+            <i data-lucide="cpu" class="w-6 h-6 text-brand-500 group-hover:rotate-180 transition-transform duration-700"></i>
+            <span>Alex Becz</span>
+        </div>
+        <button id="theme-toggle" class="p-2.5 rounded-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-gray-200 dark:border-zinc-800 hover:bg-white dark:hover:bg-zinc-800 transition-colors focus:outline-none z-50 shadow-sm">
+            <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
+            <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-zinc-600"></i>
+        </button>
+    </nav>
+
+    <!-- Main Content (z-index above backgrounds) -->
+    <main class="max-w-6xl mx-auto px-4 relative z-10">
+        <!-- TOP BENTO GRID -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 auto-rows-auto gap-4 md:gap-6 mb-6">
+            
+            <!-- 1. Hero Card -->
+            <div class="bento-card col-span-1 md:col-span-2 lg:col-span-2 lg:row-span-2 opacity-0 animate-fade-in-up flex flex-col justify-between group">
+                <div class="bento-content">
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)] bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm">
+                            <span class="inline-block w-2 h-2 rounded-full bg-brand-500 mr-1 animate-pulse"></span> Available for Staff Roles
+                        </span>
+                    </div>
+                    <img src="Sashik_AI_GEN_2.jpg" alt="Alexander Becz" class="w-24 h-24 rounded-full object-cover border-2 border-white dark:border-zinc-800 shadow-xl mb-6 transition-transform duration-500 group-hover:scale-105 group-hover:rotate-3">
+                    <h1 class="text-3xl md:text-4xl font-extrabold mb-4 leading-tight drop-shadow-sm">
+                        I build high-performing Engineering & AI teams.
+                    </h1>
+                    <!-- Terminal Typing Effect -->
+                    <div class="font-mono text-sm md:text-base text-brand-600 dark:text-brand-400 mb-8 h-6 flex items-center drop-shadow-sm">
+                        <span id="typewriter"></span><span class="cursor-blink bg-brand-500 w-2 h-5 inline-block ml-1 align-middle"></span>
+                    </div>
+                </div>
+                <div class="bento-content flex flex-wrap gap-4 mt-auto">
+                    <a href="alex.becz.2026.pdf" download class="flex items-center gap-2 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold rounded-xl hover:bg-brand-600 dark:hover:bg-brand-500 hover:text-white transition-all shadow-lg hover:shadow-brand-500/25 relative z-50">
+                        <i data-lucide="download" class="w-5 h-5"></i> Download Resume
+                    </a>
+                </div>
+            </div>
+
+            <!-- 2. AI Metrics Card -->
+            <div class="bento-card col-span-1 md:col-span-1 opacity-0 animate-fade-in-up border border-brand-500/20 dark:border-brand-500/30 !p-0 overflow-hidden group bg-gradient-to-br from-white/90 to-brand-50/90 dark:from-zinc-900/90 dark:to-zinc-950/90 text-gray-900 dark:text-white">
+                <div class="bento-content relative z-10 p-6 md:p-8 h-full flex flex-col justify-center">
+                    <div class="relative w-12 h-12 mb-4 flex items-center justify-center">
+                        <span class="absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-20 animate-ping-slow"></span>
+                        <i data-lucide="zap" class="w-8 h-8 text-brand-500 dark:text-brand-400 relative z-10 drop-shadow-md"></i>
+                    </div>
+                    <h3 class="text-5xl font-black mb-2 flex items-center">
+                        -<span id="counter" data-target="40">0</span>%
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400 font-medium text-sm leading-snug">Reduction in time-to-fill using Gen-AI & ChatGPT workflows.</p>
+                </div>
+            </div>
+
+            <!-- 3. Interactive Sourcing Query Generator -->
+            <div class="bento-card col-span-1 md:col-span-1 lg:col-span-1 lg:row-span-2 opacity-0 animate-fade-in-up flex flex-col bg-white/70 dark:bg-zinc-900/70">
+                <div class="bento-content h-full flex flex-col">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="search-code" class="w-5 h-5 text-brand-500"></i>
+                        <h3 class="text-lg font-bold">OSINT Sourcing</h3>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Generate production logic:</p>
+                    
+                    <div class="flex flex-col gap-2 mb-4 z-30">
+                        <button onclick="setSourcingMode('csharp')" id="btn-csharp" class="sourcing-btn px-3 py-1.5 text-left text-sm rounded-lg bg-brand-500 text-white font-medium transition-colors border border-transparent shadow-sm">Staff Backend (C#)</button>
+                        <button onclick="setSourcingMode('ai')" id="btn-ai" class="sourcing-btn px-3 py-1.5 text-left text-sm rounded-lg bg-white/50 dark:bg-zinc-800/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 font-medium transition-colors border border-gray-200/50 dark:border-zinc-700/50">AI / ML Engineer</button>
+                        <button onclick="setSourcingMode('gtm')" id="btn-gtm" class="sourcing-btn px-3 py-1.5 text-left text-sm rounded-lg bg-white/50 dark:bg-zinc-800/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 font-medium transition-colors border border-gray-200/50 dark:border-zinc-700/50">Enterprise GTM</button>
+                    </div>
+
+                    <div class="relative bg-gray-50 dark:bg-zinc-950 rounded-xl p-3 flex-1 flex flex-col border border-gray-200 dark:border-zinc-800 group/code shadow-inner">
+                        <div class="absolute top-2 right-2 flex gap-1.5">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                        </div>
+                        <code id="sourcing-output" class="text-xs font-mono text-brand-600 dark:text-green-400 mt-5 break-all flex-1 h-full">
+("Staff" OR "Principal" OR "Architect") AND ("C#" OR ".NET 8") AND ("System.Threading.Channels" OR "MassTransit" OR "CQRS")
+                        </code>
+                        <button onclick="copySourcing()" class="absolute bottom-2 right-2 p-1.5 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-lg text-gray-700 dark:text-white transition-colors z-30 shadow-md border border-gray-200 dark:border-zinc-700">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Infinite Marquee Tech Stack Card -->
+            <div class="bento-card col-span-1 md:col-span-3 lg:col-span-3 opacity-0 animate-fade-in-up overflow-hidden">
+                <div class="bento-content">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="layers" class="w-5 h-5 text-brand-500"></i>
+                        <h3 class="font-bold">Ecosystem & Toolkit</h3>
+                    </div>
+                    
+                    <div class="relative flex flex-col gap-3 overflow-hidden w-full mask-edges">
+                        <div class="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white/90 dark:from-zinc-900/90 to-transparent z-10 pointer-events-none"></div>
+                        <div class="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white/90 dark:from-zinc-900/90 to-transparent z-10 pointer-events-none"></div>
+                        
+                        <!-- Row 1 -->
+                        <div class="flex gap-3 w-max animate-marquee">
+                            <script>
+                                const skills1 = ['Prompt Engineering', 'OSINT', 'X-ray / Boolean', 'OpenAI', 'Gemini', 'Lever', 'GreenHouse', 'Ashby', 'Python', 'C# / .NET', 'TypeScript', 'System Architecture'];
+                                [...skills1, ...skills1].forEach(skill => {
+                                    document.write(`<span class="px-3 py-1.5 bg-white dark:bg-zinc-800 shadow-sm border border-gray-100/50 dark:border-zinc-700/50 text-gray-800 dark:text-gray-200 text-sm font-medium rounded-lg whitespace-nowrap backdrop-blur-sm">${skill}</span>`);
+                                });
+                            </script>
+                        </div>
+                        
+                        <!-- Row 2 -->
+                        <div class="flex gap-3 w-max animate-marquee-reverse">
+                            <script>
+                                const skills2 = ['Staff & Principal Sourcing', 'AI/ML Hiring', 'Go', 'Node.js', 'React', 'FastAPI', 'CyberSecurity', 'Enterprise GTM', 'Executive Search', 'Data Analysis'];
+                                [...skills2, ...skills2].forEach(skill => {
+                                    document.write(`<span class="px-3 py-1.5 bg-gray-50/80 dark:bg-zinc-950/50 shadow-sm border border-gray-100/50 dark:border-zinc-800/30 text-gray-800 dark:text-gray-200 text-sm font-medium rounded-lg whitespace-nowrap backdrop-blur-sm">${skill}</span>`);
+                                });
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FULL-WIDTH CAREER TIMELINE -->
+        <div class="bento-card w-full opacity-0 animate-fade-in-up mb-6">
+            <div class="bento-content">
+                <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200/50 dark:border-zinc-800/50">
+                    <h3 class="flex items-center gap-2 text-2xl font-bold">
+                        <i data-lucide="briefcase" class="w-6 h-6 text-brand-500"></i> Career Milestones
+                    </h3>
+                    <span class="text-sm font-bold px-3 py-1 bg-white/50 dark:bg-zinc-800/50 backdrop-blur-md rounded-lg text-gray-600 dark:text-gray-300 border border-gray-200/50 dark:border-zinc-700/50 shadow-inner">12+ Years Exp</span>
+                </div>
+                
+                <div class="flex flex-col gap-10">
+                    <!-- Filevine -->
+                    <div class="relative pl-8 border-l-[3px] border-brand-500 group/timeline">
+                        <div class="absolute w-5 h-5 bg-brand-500 rounded-full -left-[11px] top-1 shadow-[0_0_15px_rgba(59,130,246,0.8)] flex items-center justify-center">
+                            <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        </div>
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+                            <h4 class="font-black text-xl text-gray-900 dark:text-white drop-shadow-sm">Senior/Staff Tech Recruiter <span class="text-brand-500 font-normal">@ Filevine</span></h4>
+                            <p class="text-gray-500 dark:text-gray-400 font-mono text-sm">May 2025 - Present</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-bold rounded border border-brand-200 dark:border-brand-500/20">16 Hires in 3 Weeks</span>
+                            <span class="px-2 py-1 bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-bold rounded border border-brand-200 dark:border-brand-500/20">AI-Driven Architecture</span>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl">
+                            Managing Staff-level engineering pipelines across the US and EMEA. Engineered high-conversion sourcing workflows using Gemini and ChatGPT for hyper-personalized candidate sequencing and structured talent intelligence, setting volume & speed records in the company's 10-year history.
+                        </p>
+                    </div>
+
+                    <!-- OrionIG -->
+                    <div class="relative pl-8 border-l-[3px] border-gray-300 dark:border-zinc-700 group/timeline hover:border-brand-400 transition-colors duration-500">
+                        <div class="absolute w-4 h-4 bg-gray-400 dark:bg-zinc-600 rounded-full -left-[9px] top-1.5 group-hover/timeline:bg-brand-500 transition-colors duration-500 border-2 border-white dark:border-zinc-900"></div>
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+                            <h4 class="font-bold text-xl text-gray-900 dark:text-white">Senior TA Specialist <span class="text-gray-500 dark:text-gray-400 font-normal">@ OrionIG</span></h4>
+                            <p class="text-gray-500 dark:text-gray-400 font-mono text-sm">Jun 2024 - May 2025</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs font-bold rounded border border-gray-200 dark:border-zinc-700 shadow-sm">+110% Pipeline Expansion</span>
+                            <span class="px-2 py-1 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs font-bold rounded border border-gray-200 dark:border-zinc-700 shadow-sm">90% HM Satisfaction</span>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl">
+                            Partnered with clients in SaaS, HealthTech, and AI/ML. Conducted holistic technical assessments and provided actionable career guidance to candidates, aligning skills with strategic organizational goals.
+                        </p>
+                    </div>
+
+                    <!-- Proofpoint -->
+                    <div class="relative pl-8 border-l-[3px] border-gray-300 dark:border-zinc-700 group/timeline hover:border-brand-400 transition-colors duration-500">
+                        <div class="absolute w-4 h-4 bg-gray-400 dark:bg-zinc-600 rounded-full -left-[9px] top-1.5 group-hover/timeline:bg-brand-500 transition-colors duration-500 border-2 border-white dark:border-zinc-900"></div>
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+                            <h4 class="font-bold text-xl text-gray-900 dark:text-white">Senior Technical Recruiter <span class="text-gray-500 dark:text-gray-400 font-normal">@ Proofpoint</span></h4>
+                            <p class="text-gray-500 dark:text-gray-400 font-mono text-sm">Feb 2022 - May 2024</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs font-bold rounded border border-gray-200 dark:border-zinc-700 shadow-sm">+120% LatAm Growth</span>
+                            <span class="px-2 py-1 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs font-bold rounded border border-gray-200 dark:border-zinc-700 shadow-sm">56% Engagement Boost</span>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl">
+                            Devised and executed global recruiting strategies for enterprise CyberSecurity talent across US, EMEA, LATAM, and APJ. Mentored a 5-person recruiting team and successfully closed hard-to-fill requisitions internationally.
+                        </p>
+                    </div>
+
+                    <!-- Myriad Genetics -->
+                    <div class="relative pl-8 border-l-[3px] border-gray-300 dark:border-zinc-700 group/timeline hover:border-brand-400 transition-colors duration-500">
+                        <div class="absolute w-4 h-4 bg-gray-400 dark:bg-zinc-600 rounded-full -left-[9px] top-1.5 group-hover/timeline:bg-brand-500 transition-colors duration-500 border-2 border-white dark:border-zinc-900"></div>
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+                            <h4 class="font-bold text-xl text-gray-900 dark:text-white">Lead Technical Recruiter <span class="text-gray-500 dark:text-gray-400 font-normal">@ Myriad Genetics</span></h4>
+                            <p class="text-gray-500 dark:text-gray-400 font-mono text-sm">Mar 2020 - Jan 2022</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs font-bold rounded border border-gray-200 dark:border-zinc-700 shadow-sm">+250% DEI Pipeline</span>
+                            <span class="px-2 py-1 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs font-bold rounded border border-gray-200 dark:border-zinc-700 shadow-sm">Team Leadership</span>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl">
+                            Oversaw the full recruiting lifecycle for technical, sales, and laboratory professionals. Led a team of six talent acquisition members ensuring strict compliance with biotechnology industry regulations.
+                        </p>
+                    </div>
+                    
+                    <!-- Consultnet -->
+                    <div class="relative pl-8 border-l-[3px] border-transparent">
+                        <div class="absolute w-4 h-4 bg-gray-400 dark:bg-zinc-600 rounded-full -left-[9px] top-1.5 border-2 border-white dark:border-zinc-900"></div>
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+                            <h4 class="font-bold text-xl text-gray-900 dark:text-white">Lead Recruiter & Sales Dev <span class="text-gray-500 dark:text-gray-400 font-normal">@ Consultnet</span></h4>
+                            <p class="text-gray-500 dark:text-gray-400 font-mono text-sm">Mar 2013 - Apr 2019</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs font-bold rounded border border-gray-200 dark:border-zinc-700 shadow-sm">+150% Acct Scaling</span>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl">
+                            Led full-cycle recruiting and sales operations nationwide. Restructured vendor processes to improve efficiency by 30% and coached a team of up to 9 junior recruiters across diverse industry verticals.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FULL-WIDTH INTERACTIVE TERMINAL -->
+        <div class="bento-card w-full opacity-0 animate-fade-in-up bg-gray-50/90 dark:bg-zinc-950/90 border border-gray-200 dark:border-zinc-800 group/term">
+            <div class="bento-content">
+                <div class="flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 pb-3 mb-4">
+                    <div class="flex gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500 shadow-sm"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500 shadow-sm"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500 shadow-sm"></div>
+                    </div>
+                    <span class="text-gray-500 dark:text-zinc-500 font-mono text-xs">shanko@alex-becz-osint ~ %</span>
+                </div>
+                
+                <!-- Terminal Output -->
+                <div id="terminal-output" class="font-mono text-sm text-brand-600 dark:text-green-400 h-48 overflow-y-auto terminal-scroll mb-4 flex flex-col gap-2">
+                    <div><span class="text-blue-500 dark:text-blue-400">System:</span> Alexander Becz Terminal v5.0 initialized.</div>
+                    <div><span class="text-blue-500 dark:text-blue-400">System:</span> Hybrid Data-Mesh Active. Type a command or click a preset below to explore data.</div>
+                </div>
+
+                <!-- Terminal Input line -->
+                <div class="flex items-center font-mono text-sm text-gray-900 dark:text-white mb-6">
+                    <span class="text-brand-500 dark:text-brand-400 mr-2">~ %</span>
+                    <input type="text" id="terminal-input" autocomplete="off" class="flex-1 bg-transparent outline-none focus:outline-none focus:ring-0 border-none text-brand-600 dark:text-green-400 placeholder-gray-400 dark:placeholder-zinc-600" placeholder="Type 'help'..." onkeydown="handleTerminalCommand(event)">
+                </div>
+
+                <!-- Command Pills -->
+                <div class="flex flex-wrap gap-2 pt-4 border-t border-gray-200 dark:border-zinc-800 z-50 relative">
+                    <span class="text-xs font-mono text-gray-500 dark:text-zinc-500 uppercase mr-2 flex items-center">Quick Exec:</span>
+                    <button onclick="runCommand('help')" class="px-3 py-1 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 font-mono text-xs rounded transition-colors shadow border border-gray-200 dark:border-zinc-700 z-50">help</button>
+                    <button onclick="runCommand('skills')" class="px-3 py-1 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 font-mono text-xs rounded transition-colors shadow border border-gray-200 dark:border-zinc-700 z-50">skills</button>
+                    <button onclick="runCommand('boolean-sample')" class="px-3 py-1 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 font-mono text-xs rounded transition-colors shadow border border-gray-200 dark:border-zinc-700 z-50">boolean-sample</button>
+                    <button onclick="runCommand('contact')" class="px-3 py-1 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 font-mono text-xs rounded transition-colors shadow border border-gray-200 dark:border-zinc-700 z-50">contact</button>
+                    <button onclick="runCommand('clear')" class="px-3 py-1 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 font-mono text-xs rounded transition-colors shadow border border-gray-200 dark:border-zinc-700 z-50">clear</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FLOATING GLASS DOCK (Fixed Bottom - TEXT ONLY) -->
+    <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] flex items-center gap-2 md:gap-4 px-4 py-3 rounded-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-gray-200/50 dark:border-zinc-700/50 shadow-2xl shadow-brand-500/10 whitespace-nowrap">
+        
+        <a href="https://www.linkedin.com/in/alxhb/" target="_blank" class="px-4 py-2 text-sm font-semibold rounded-full text-gray-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all">
+            LinkedIn
+        </a>
+        
+        <a href="https://www.github.com/septimius72" target="_blank" class="px-4 py-2 text-sm font-semibold rounded-full text-gray-700 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all">
+            GitHub
+        </a>
+        
+        <a href="https://proximoalex.weebly.com" target="_blank" class="px-4 py-2 text-sm font-semibold rounded-full text-gray-700 dark:text-zinc-300 hover:text-brand-600 dark:hover:text-brand-500 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all">
+            Portfolio
+        </a>
+        
+        <div class="w-px h-6 bg-gray-300 dark:bg-zinc-700 mx-1"></div>
+        
+        <a href="mailto:shanko.becz@gmail.com" class="px-5 py-2 text-sm font-semibold rounded-full bg-brand-500 text-white hover:bg-brand-600 hover:shadow-lg transition-all shadow-md border border-transparent">
+            Email
+        </a>
+        
+    </div>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // 1. Initialize Icons
+        lucide.createIcons();
+
+        // 2. Dark/Light Mode Engine
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+
+        if (localStorage.getItem('theme') === 'light') {
+            htmlElement.classList.remove('dark');
+        } else {
+            htmlElement.classList.add('dark');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            localStorage.setItem('theme', htmlElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // 3. Spotlight Effect for Cards
+        document.querySelectorAll('.bento-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // 4. Typewriter Effect
+        const phrases = [
+            "> Loading Talent Acquisition Leader...",
+            "> Executing OSINT Target Search...",
+            "> Prompting Gen-AI Sourcing Workflows...",
+            "> Building Elite Engineering Teams..."
+        ];
+        let phraseIndex = 0; let charIndex = 0; let isDeleting = false;
+        const typewriterEl = document.getElementById('typewriter');
+        function type() {
+            const currentPhrase = phrases[phraseIndex];
+            if (isDeleting) {
+                typewriterEl.textContent = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typewriterEl.textContent = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+            }
+            let typeSpeed = isDeleting ? 30 : 60;
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                typeSpeed = 2000; isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false; phraseIndex = (phraseIndex + 1) % phrases.length; typeSpeed = 500;
+            }
+            setTimeout(type, typeSpeed);
+        }
+        setTimeout(type, 1000);
+
+        // 5. Intersection Observer (-40% counter)
+        const counter = document.getElementById('counter');
+        const target = parseInt(counter.getAttribute('data-target'));
+        let hasCounted = false;
+        const observer = new IntersectionObserver((entries) => {
+            if(entries[0].isIntersecting && !hasCounted) {
+                hasCounted = true;
+                let count = 0;
+                const timer = setInterval(() => {
+                    count++;
+                    counter.innerText = count;
+                    if (count >= target) { clearInterval(timer); counter.innerText = target; }
+                }, 30);
+            }
+        }, { threshold: 0.5 });
+        observer.observe(counter);
+
+        // 6. Interactive Sourcing Widget
+        const sourcingStrings = {
+            csharp: '("Staff" OR "Principal" OR "Architect") AND ("C#" OR ".NET Core") AND ("System.Threading.Channels" OR "MassTransit" OR "CQRS")',
+            ai: '("Machine Learning" OR "LLM" OR "Generative AI" OR "GenAI") AND ("PyTorch" OR "LangChain" OR "TensorFlow" OR "Vector Search")',
+            gtm: '("Enterprise Account Executive" OR "SDR" OR "BDR") AND ("SaaS" OR "B2B") AND ("Salesforce" OR "Outreach")'
+        };
+
+        function setSourcingMode(mode) {
+            document.getElementById('sourcing-output').innerText = sourcingStrings[mode];
+            ['csharp', 'ai', 'gtm'].forEach(id => {
+                const btn = document.getElementById(`btn-${id}`);
+                btn.className = "sourcing-btn px-3 py-1.5 text-left text-sm rounded-lg bg-white/50 dark:bg-zinc-800/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 font-medium transition-colors border border-gray-200/50 dark:border-zinc-700/50";
+            });
+            const activeBtn = document.getElementById(`btn-${mode}`);
+            activeBtn.className = "sourcing-btn px-3 py-1.5 text-left text-sm rounded-lg bg-brand-500 text-white font-medium transition-colors border border-transparent shadow-sm";
+        }
+
+        function copySourcing() {
+            const text = document.getElementById('sourcing-output').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2500);
+            });
+        }
+
+        // 7. Terminal Logic
+        const terminalOut = document.getElementById('terminal-output');
+        const terminalIn = document.getElementById('terminal-input');
+
+        const cmdResponses = {
+            'help': 'Available commands: <br> - <span class="text-brand-500 dark:text-yellow-400">skills</span>: Display core competencies <br> - <span class="text-brand-500 dark:text-yellow-400">boolean-sample</span>: Run an OSINT X-Ray query <br> - <span class="text-brand-500 dark:text-yellow-400">contact</span>: View contact info <br> - <span class="text-brand-500 dark:text-yellow-400">clear</span>: Clear terminal',
+            'skills': 'Loading skills array...<br>[Python, C#, Go, React, OSINT, Prompt Engineering, Lever, Greenfield Scaling]',
+            'boolean-sample': 'Executing X-Ray against GitHub... <br><span class="text-blue-600 dark:text-brand-400">site:github.com "language:C#" ("System.Threading.Channels" OR "high-throughput") -intitle:jobs</span> <br>Status: 200 OK. Profiles extracted.',
+            'contact': 'Email: shanko.becz@gmail.com <br>Phone: 801.903.9097 <br>Location: Riverton, UT',
+        };
+
+        function printToTerminal(text, isInput = false) {
+            const div = document.createElement('div');
+            if(isInput) {
+                div.innerHTML = `<span class="text-gray-500 dark:text-zinc-500">~ %</span> <span class="text-gray-900 dark:text-white">${text}</span>`;
+            } else {
+                div.innerHTML = text;
+            }
+            terminalOut.appendChild(div);
+            terminalOut.scrollTop = terminalOut.scrollHeight;
+        }
+
+        function runCommand(cmd) {
+            const cleanCmd = cmd.toLowerCase().trim();
+            printToTerminal(cleanCmd, true);
+            
+            if (cleanCmd === 'clear') {
+                terminalOut.innerHTML = '';
+            } else if (cmdResponses[cleanCmd]) {
+                printToTerminal(cmdResponses[cleanCmd]);
+            } else if (cleanCmd !== "") {
+                printToTerminal(`Command not found: ${cleanCmd}. Type 'help' for a list of commands.`);
+            }
+            terminalIn.value = '';
+        }
+
+        function handleTerminalCommand(e) {
+            if (e.key === 'Enter') {
+                runCommand(terminalIn.value);
+            }
+        }
+
+        // 8. INTERACTIVE CANVAS PARTICLE NETWORK (Layer 2)
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouse = { x: null, y: null };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        // Prevent stuck lines when leaving the window
+        document.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                // Soft drift velocity
+                this.vx = (Math.random() - 0.5) * 0.4;
+                this.vy = (Math.random() - 0.5) * 0.4;
+                this.radius = Math.random() * 1.5 + 0.5;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
+                if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
+            }
+            draw(isDark) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = isDark ? 'rgba(59, 130, 246, 0.5)' : 'rgba(59, 130, 246, 0.4)';
+                ctx.fill();
+            }
+        }
+
+        // Adjust particle count based on screen size for performance
+        const particleCount = window.innerWidth < 768 ? 35 : 70;
+        for(let i=0; i<particleCount; i++) particles.push(new Particle());
+
+        function animateCanvas() {
+            requestAnimationFrame(animateCanvas);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Dynamically check theme to adjust canvas colors smoothly
+            const isDark = document.documentElement.classList.contains('dark');
+            const lineColor = isDark ? '59, 130, 246' : '96, 165, 250'; 
+
+            particles.forEach(p => {
+                p.update();
+                p.draw(isDark);
+            });
+
+            // Draw connecting lines between close particles
+            for(let i=0; i<particles.length; i++) {
+                for(let j=i+1; j<particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(${lineColor}, ${(1 - dist/120) * 0.25})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+                
+                // Draw line to mouse cursor
+                if (mouse.x != null) {
+                    const dx = particles[i].x - mouse.x;
+                    const dy = particles[i].y - mouse.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 180) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(${lineColor}, ${(1 - dist/180) * 0.5})`;
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        animateCanvas();
+    </script>
+</body>
+</html>
